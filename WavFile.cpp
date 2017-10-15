@@ -220,6 +220,57 @@ void WavFile::recalculateHead(int chanCount, int bitsPerSample, int sampleRate, 
     std::clog << "Updating complete\n";
 }
 
-void WavFile::makeReverb(int sampleRate, double delaySeconds, float decay) {
+void WavFile::makeReverb(double delaySeconds, float decay) {
+    int chan_count = (int) data.size();
+    int sampleRate = head.sampleRate;
+    if (chan_count < 1) {
+        throw error::BadFormatException("Only one channel");
+    }
+
+    int samplesCountPerChan = (int) data[0].size();
+
+    // Verify that all channels have the same number of samples.
+    for (size_t ch = 0; ch < chan_count; ch++) {
+        if (data[ch].size() != (size_t) samplesCountPerChan) {
+            throw error::BadFormatException("Wrong samples amount in channel");
+        }
+    }
+
+    int delaySamples = (int) (delaySeconds * sampleRate);
+
+
+    for (size_t ch = 0; ch < chan_count; ch++) {
+        std::vector<float> tmp;
+        tmp.resize(data[ch].size());
+
+        // Convert signal from short to float
+        for (size_t i = 0; i < samplesCountPerChan; i++) {
+            tmp[i] = data[ch][i];
+        }
+
+        // Add a reverb
+        for (size_t i = 0; i < samplesCountPerChan - delaySamples; i++) {
+            tmp[i + delaySamples] += decay * tmp[i];
+        }
+
+        // Find maximum signal's magnitude
+        float max_magnitude = 0.0f;
+        for (size_t i = 0; i < samplesCountPerChan - delaySamples; i++) {
+            if (abs(tmp[i]) > max_magnitude) {
+                max_magnitude = abs(tmp[i]);
+            }
+        }
+
+        // Signed short can keep values from -32768 to +32767,
+        // After reverb, usually there are values large 32000.
+        // So we must scale all values back to [ -32768 ... 32768 ]
+        float norm_coef = 30000.0f / max_magnitude;
+        printf("max_magnitude = %.1f, coef = %.3f\n", max_magnitude, norm_coef);
+
+        // Scale back and transform floats to shorts.
+        for (size_t i = 0; i < samplesCountPerChan; i++) {
+            data[ch][i] = (short) (norm_coef * tmp[i]);
+        }
+    }
 
 }

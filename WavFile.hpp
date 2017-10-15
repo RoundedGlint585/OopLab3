@@ -21,7 +21,7 @@ public:
 
     void makeMono();
 
-    void makeReverb(int sampleRate, double delaySeconds, float decay);
+    void makeReverb(double delaySeconds, float decay);
 
 
 private:
