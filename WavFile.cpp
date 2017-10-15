@@ -171,3 +171,55 @@ void WavFile::safeAs(const std::string &filename) {
     fclose(f);
 }
 
+void WavFile::makeMono() {
+    std::clog << "Start making mono sound\n";
+    int chanCount = (int) data.size();
+    std::clog << "Detected " + std::to_string(chanCount) + " channels\n";
+    if (chanCount == 1) {
+        std::clog << "File alread in mono\n";
+        return;
+    }
+
+    int samplesCountPerChan = (int) data[0].size();
+
+    // Verify that all channels have the same number of samples.
+    for (size_t ch = 0; ch < chanCount; ch++) {
+        if (data[ch].size() != (size_t) samplesCountPerChan) {
+            throw error::BadFormatException("Wrong samples amount in channel");
+        }
+    }
+
+    std::vector<std::vector<short>> res;
+    res.resize(1);
+    res[0].resize(samplesCountPerChan);
+    std::clog << res.size() << " " << res[0].size() << std::endl;
+    // Mono channel is an arithmetic mean of all (two) channels.
+    for (size_t i = 0; i < samplesCountPerChan; i++) {
+        for (int j = 0; j < chanCount; j++) {
+            res[0][i] += data[j][i];
+        }
+        res[0][i] /= chanCount;
+    }
+    this->data = res;
+    recalculateHead(1, head.bitsPerSample, head.sampleRate, samplesCountPerChan);
+    std::clog << "Complete making mono\n";
+}
+
+void WavFile::recalculateHead(int chanCount, int bitsPerSample, int sampleRate, int samplesCountPerChan) {
+    std::clog << "Updating Header\n";
+    head.sampleRate = sampleRate;
+    head.numChannels = chanCount;
+    head.bitsPerSample = 16;
+    int fileSizeBytes = 44 + chanCount * (bitsPerSample / 8) * samplesCountPerChan;
+    head.chunkSize = fileSizeBytes - 8;
+    head.subchunk2Size = fileSizeBytes - 44;
+
+    head.byteRate = head.sampleRate * head.numChannels * head.bitsPerSample / 8;
+    head.blockAlign = head.numChannels * head.bitsPerSample / 8;
+
+    std::clog << "Updating complete\n";
+}
+
+void WavFile::makeReverb(int sampleRate, double delaySeconds, float decay) {
+
+}

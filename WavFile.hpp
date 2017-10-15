@@ -19,6 +19,10 @@ public:
 
     void safeAs(const std::string &filename);
 
+    void makeMono();
+
+    void makeReverb(int sampleRate, double delaySeconds, float decay);
+
 
 private:
     void readHeader(const std::string &filename);
@@ -26,6 +30,8 @@ private:
     void checkHeader(const std::string &filename);
 
     void extractDataInt16(const std::string &filename);
+
+    void recalculateHead(int chanCount, int bitsPerSample, int sampleRate, int samplesCountPerChan);
 
     std::string name;
     size_t fileSize;
