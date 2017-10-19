@@ -274,3 +274,19 @@ void WavFile::makeReverb(double delaySeconds, float decay) {
     }
 
 }
+
+unsigned short WavFile::getAudioFormat() {
+    return head.audioFormat;
+}
+
+unsigned short WavFile::getNumOfChunnel() {
+    return head.numChannels;
+}
+
+uint32_t WavFile::getSampleRate() {
+    return head.sampleRate;
+}
+
+unsigned short WavFile::getBitsPerSample() {
+    return head.bitsPerSample;
+}

@@ -13,7 +13,7 @@ class WavFile {
 public:
     WavFile() = delete;
 
-    WavFile(const std::string &filename);
+    explicit WavFile(const std::string &filename);
 
     void printInfo();
 
@@ -22,6 +22,14 @@ public:
     void makeMono();
 
     void makeReverb(double delaySeconds, float decay);
+
+    unsigned short getAudioFormat();
+
+    unsigned short getNumOfChunnel();
+
+    uint32_t getSampleRate();
+
+    unsigned short getBitsPerSample();
 
 
 private:
@@ -33,7 +41,6 @@ private:
 
     void recalculateHead(int chanCount, int bitsPerSample, int sampleRate, int samplesCountPerChan);
 
-    std::string name;
     size_t fileSize;
     WavHeader head;
     std::vector<std::vector<short>> data;
